@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tekken 8 Frame Data Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #16213e 50%, #0f3460 100%);
+            color: #f5f5f5;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 0, 100, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 200, 255, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 0, 100, 0.15) 0%, transparent 70%);
+            z-index: -1;
+            filter: blur(40px);
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 48px;
+            margin-bottom: 8px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255, 0, 100, 0.5), 0 0 40px rgba(0, 200, 255, 0.3);
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255, 0, 100, 0.5), 0 0 40px rgba(0, 200, 255, 0.3); }
+            50% { text-shadow: 0 0 30px rgba(255, 0, 100, 0.7), 0 0 60px rgba(0, 200, 255, 0.5); }
+        }
+
+        .section {
+            background: linear-gradient(135deg, rgba(20, 30, 60, 0.8) 0%, rgba(15, 25, 50, 0.9) 100%);
+            border-radius: 4px;
+            padding: 30px;
+            margin-bottom: 24px;
+            border: 2px solid rgba(0, 200, 255, 0.3);
+            box-shadow: 
+                0 0 30px rgba(255, 0, 100, 0.1),
+                0 0 60px rgba(0, 200, 255, 0.05),
+                inset 0 0 20px rgba(0, 200, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(0, 200, 255, 0.5), transparent);
+            animation: scanlines 8s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .section h2 {
+            color: #00c8ff;
+            font-size: 22px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 900;
+        }
+
+        .character-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .character-btn {
+            padding: 14px 10px;
+            background: linear-gradient(135deg, rgba(255, 0, 100, 0.1) 0%, rgba(0, 200, 255, 0.1) 100%);
+            border: 2px solid rgba(0, 200, 255, 0.4);
+            border-radius: 2px;
+            color: #00c8ff;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 900;
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .character-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .character-btn:hover {
+            background: linear-gradient(135deg, rgba(255, 0, 100, 0.2) 0%, rgba(0, 200, 255, 0.2) 100%);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.4), 0 0 40px rgba(255, 0, 100, 0.2);
+            border-color: rgba(0, 200, 255, 0.6);
+        }
+
+        .character-btn:hover::before {
+            left: 100%;
+        }
+
+        .character-btn.selected {
+            background: linear-gradient(135deg, rgba(255, 0, 100, 0.4) 0%, rgba(0, 200, 255, 0.4) 100%);
+            color: #fff;
+            border-color: rgba(0, 200, 255, 0.8);
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.6), 0 0 60px rgba(255, 0, 100, 0.3), inset 0 0 20px rgba(0, 200, 255, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 14px 28px;
+            border: 2px solid rgba(0, 200, 255, 0.5);
+            border-radius: 2px;
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff0064 0%, #00c8ff 100%);
+            color: #fff;
+            box-shadow: 0 0 20px rgba(255, 0, 100, 0.4), 0 0 40px rgba(0, 200, 255, 0.2);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #ff3380 0%, #00e8ff 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 0 40px rgba(255, 0, 100, 0.6), 0 0 80px rgba(0, 200, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, rgba(255, 0, 100, 0.15) 0%, rgba(0, 200, 255, 0.15) 100%);
+            color: #00c8ff;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: linear-gradient(135deg, rgba(255, 0, 100, 0.25) 0%, rgba(0, 200, 255, 0.25) 100%);
+            border-color: rgba(0, 200, 255, 0.8);
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, rgba(255, 0, 100, 0.1) 0%, rgba(0, 200, 255, 0.1) 100%);
+            border: 2px solid rgba(0, 200, 255, 0.3);
+            padding: 18px;
+            border-radius: 2px;
+            text-align: center;
+            box-shadow: inset 0 0 15px rgba(0, 200, 255, 0.05);
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #00c8ff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 900;
+            color: #00ff00;
+            margin-top: 8px;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        /* FLASHCARD STYLES */
+        .flashcard-section {
+            display: none;
+        }
+
+        .flashcard-section.active {
+            display: block;
+        }
+
+        .flashcard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(0, 200, 255, 0.3);
+        }
+
+        .flashcard-header h2 {
+            margin: 0;
+            color: #00c8ff;
+        }
+
+        .flashcard-counter {
+            font-size: 13px;
+            color: #00ff00;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .difficulty-selector {
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .difficulty-btn {
+            padding: 10px 12px;
+            font-size: 11px;
+            background: rgba(0, 200, 255, 0.1);
+            border: 2px solid rgba(0, 200, 255, 0.3);
+        }
+
+        .difficulty-btn.active {
+            background: linear-gradient(135deg, #ff0064 0%, #00c8ff 100%);
+            color: #fff;
+            border-color: #00c8ff;
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.4);
+        }
+
+        .flashcard-container {
+            perspective: 1000px;
+            margin-bottom: 20px;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .flashcard {
+            width: 100%;
+            min-height: 600px;
+            background: linear-gradient(135deg, rgba(255, 0, 100, 0.1) 0%, rgba(0, 200, 255, 0.1) 100%);
+            border: 2px solid rgba(0, 200, 255, 0.4);
+            border-radius: 4px;
+            padding: 40px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            transition: all 0.3s ease;
+            user-select: none;
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.2), inset 0 0 20px rgba(0, 200, 255, 0.05);
+        }
+
+        .flashcard:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 200, 255, 0.6);
+            box-shadow: 0 0 50px rgba(0, 200, 255, 0.3), 0 0 30px rgba(255, 0, 100, 0.2), inset 0 0 20px rgba(0, 200, 255, 0.1);
+        }
+
+        .flashcard-side {
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            width: 100%;
+        }
+
+        .flashcard-side.hidden {
+            display: none;
+        }
+
+        .card-front {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .video-container {
+            width: 100%;
+            max-width: 500px;
+            background: #000;
+            border-radius: 2px;
+            overflow: hidden;
+            border: 2px solid rgba(0, 200, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.2);
+        }
+
+        .video-container video {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: #000;
+        }
+
+        .move-notation-display {
+            color: #00ff00;
+            font-size: 44px;
+            font-weight: 900;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 3px;
+            text-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+
+        .move-hint {
+            color: #00c8ff;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .answer-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .quiz-option {
+            font-size: 12px;
+            padding: 10px 16px;
+            background: rgba(0, 200, 255, 0.1);
+            border: 2px solid rgba(0, 200, 255, 0.3);
+            color: #00c8ff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 2px;
+        }
+
+        .quiz-option:hover {
+            background: rgba(0, 200, 255, 0.2);
+            border-color: rgba(0, 200, 255, 0.6);
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.3);
+        }
+
+        .quiz-option.selected {
+            background: linear-gradient(135deg, #ff0064 0%, #00c8ff 100%);
+            color: #fff;
+            border-color: #00c8ff;
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.5);
+        }
+
+        /* Hard mode input styles */
+        .hard-mode-input {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .sign-btn {
+            padding: 10px 16px;
+            font-size: 12px;
+            background: rgba(0, 200, 255, 0.1);
+            border: 2px solid rgba(0, 200, 255, 0.3);
+            color: #00c8ff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-radius: 2px;
+            min-width: 50px;
+        }
+
+        .sign-btn:hover {
+            background: rgba(0, 200, 255, 0.2);
+            border-color: rgba(0, 200, 255, 0.6);
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.3);
+        }
+
+        .sign-btn.selected {
+            background: linear-gradient(135deg, #ff0064 0%, #00c8ff 100%);
+            color: #fff;
+            border-color: #00c8ff;
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.5);
+        }
+
+        .number-input {
+            flex: 1;
+            max-width: 100px;
+            padding: 10px 12px;
+            font-size: 16px;
+            font-weight: 900;
+            color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+            border-radius: 2px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            transition: all 0.2s ease;
+        }
+
+        .number-input:focus {
+            outline: none;
+            border-color: rgba(0, 255, 0, 0.6);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+
+        .submit-btn {
+            padding: 10px 20px;
+            font-size: 12px;
+            background: linear-gradient(135deg, #ff0064 0%, #00c8ff 100%);
+            border: 2px solid rgba(0, 200, 255, 0.5);
+            color: #fff;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.5);
+        }
+
+        .answer-feedback {
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 900;
+            min-height: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .answer-feedback.correct {
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        .answer-feedback.incorrect {
+            color: #ff0064;
+            text-shadow: 0 0 10px rgba(255, 0, 100, 0.5);
+        }
+
+        .card-back {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .frame-data {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .frame-box {
+            background: rgba(0, 200, 255, 0.1);
+            border: 2px solid rgba(0, 200, 255, 0.3);
+            border-radius: 2px;
+            padding: 18px;
+            box-shadow: inset 0 0 10px rgba(0, 200, 255, 0.05);
+        }
+
+        .frame-label {
+            font-size: 10px;
+            color: #00c8ff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .frame-value {
+            font-size: 36px;
+            font-weight: 900;
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+            text-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+        }
+
+        .frame-value.positive {
+            color: #00ff00;
+        }
+
+        .frame-value.negative {
+            color: #ff0064;
+            text-shadow: 0 0 15px rgba(255, 0, 100, 0.4);
+        }
+
+        .safety-indicator {
+            padding: 20px;
+            border-radius: 2px;
+            border: 2px solid;
+            text-align: center;
+        }
+
+        .safety-indicator.safe {
+            background: rgba(0, 255, 0, 0.1);
+            border-color: rgba(0, 255, 0, 0.4);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2), inset 0 0 10px rgba(0, 255, 0, 0.05);
+        }
+
+        .safety-indicator.unsafe {
+            background: rgba(255, 0, 100, 0.1);
+            border-color: rgba(255, 0, 100, 0.4);
+            box-shadow: 0 0 20px rgba(255, 0, 100, 0.2), inset 0 0 10px rgba(255, 0, 100, 0.05);
+        }
+
+        .safety-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .safety-indicator.safe .safety-label {
+            color: #00ff00;
+        }
+
+        .safety-indicator.unsafe .safety-label {
+            color: #ff0064;
+        }
+
+        .safety-text {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .safety-indicator.safe .safety-text {
+            color: #00ff00;
+            text-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+        }
+
+        .safety-indicator.unsafe .safety-text {
+            color: #ff0064;
+            text-shadow: 0 0 15px rgba(255, 0, 100, 0.4);
+        }
+
+        .move-name {
+            text-align: center;
+            color: #a0a0a8;
+            font-size: 13px;
+        }
+
+        .flashcard-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn-nav {
+            padding: 10px 20px;
+            font-size: 12px;
+        }
+
+        .btn-nav:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .character-filter {
+            margin-bottom: 15px;
+        }
+
+        .character-filter label {
+            display: block;
+            margin-bottom: 10px;
+            color: #00c8ff;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 600px) {
+            .character-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 32px;
+                letter-spacing: 2px;
+            }
+
+            .flashcard {
+                min-height: 500px;
+                padding: 20px;
+            }
+
+            .move-notation-display {
+                font-size: 32px;
+            }
+
+            .frame-value {
+                font-size: 28px;
+            }
+
+            .flashcard-header {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .flashcard-container {
+                min-height: 500px;
+            }
+
+            .video-container {
+                max-width: 100%;
+            }
+
+            .frame-data {
+                grid-template-columns: 1fr;
+            }
+
+            .difficulty-selector {
+                grid-template-columns: 1fr;
+            }
+
+            .answer-options {
+                flex-direction: column;
+            }
+
+            .quiz-option {
+                width: 100%;
+            }
+
+            .hard-mode-input {
+                flex-direction: column;
+            }
+
+            .number-input {
+                max-width: 100%;
+                width: 100%;
+            }
+
+            .sign-btn {
+                width: 100%;
+            }
+
+            .submit-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Tekken 8 Frame Data Quiz</h1>
+        </header>
+
+        <!-- QUIZ SECTION -->
+        <div id="quizMode">
+            <!-- Character Selection -->
+            <div class="section">
+                <h2>Select a Character</h2>
+                <div class="character-grid" id="characterGrid"></div>
+            </div>
+
+            <!-- Results -->
+            <div class="section results-section" id="resultsSection">
+                <div class="button-group">
+                    <button class="btn-primary" onclick="startFlashcards()">
+                        Start Quiz
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FLASHCARD SECTION -->
+        <div id="flashcardMode" class="flashcard-section">
+            <div class="section">
+                <div class="flashcard-header">
+                    <h2>Study Mode</h2>
+                    <div class="flashcard-counter">
+                        <span id="currentCard">1</span> / <span id="totalCards">0</span>
+                    </div>
+                </div>
+
+                <div class="character-filter">
+                    <label>Difficulty:</label>
+                    <div class="difficulty-selector">
+                        <button class="difficulty-btn active" data-difficulty="easy" onclick="changeDifficulty('easy')">
+                            Easy<br>(Safe/Unsafe)
+                        </button>
+                        <button class="difficulty-btn" data-difficulty="medium" onclick="changeDifficulty('medium')">
+                            Medium<br>(Range)
+                        </button>
+                        <button class="difficulty-btn" data-difficulty="hard" onclick="changeDifficulty('hard')">
+                            Hard<br>(Exact)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flashcard-container">
+                    <div class="flashcard" id="flashcard" onclick="flipCard()">
+                        <div class="flashcard-side card-front" id="cardFront">
+                            <div class="video-container" id="videoContainer">
+                                <video id="moveVideo" width="100%" controls controlsList="nodownload">
+                                    <source id="videoSource" src="" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                            <div>
+                                <p class="move-hint">Is this move safe or unsafe on block?</p>
+                                <div class="move-notation-display" id="moveNotation">1</div>
+                            </div>
+                            <div id="answerOptions" class="answer-options"></div>
+                            <div id="answerFeedback" class="answer-feedback"></div>
+                        </div>
+                        <div class="flashcard-side card-back hidden" id="cardBack">
+                            <div class="frame-data">
+                                <div class="frame-box">
+                                    <div class="frame-label">On Block</div>
+                                    <div class="frame-value" id="onBlockValue">+1</div>
+                                </div>
+                                <div class="frame-box">
+                                    <div class="frame-label">On Hit</div>
+                                    <div class="frame-value" id="onHitValue">+8</div>
+                                </div>
+                            </div>
+                            <div class="safety-indicator" id="safetyIndicator">
+                                <div class="safety-label">Block Safety</div>
+                                <div class="safety-text" id="safetyText">SAFE</div>
+                            </div>
+                            <div class="move-name" id="moveName">Move Name</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flashcard-nav">
+                    <button class="btn-secondary btn-nav" onclick="previousCard()" id="prevBtn">
+                        Previous
+                    </button>
+                    <button class="btn-secondary btn-nav" onclick="nextCard()" id="nextBtn">
+                        Next
+                    </button>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="shuffleCards()">
+                        Shuffle
+                    </button>
+                    <button class="btn-secondary" onclick="backToResults()">
+                        Back to Characters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let currentMoves = [];
+        let filteredMoves = [];
+        let currentCardIndex = 0;
+        let isFlipped = false;
+        let difficulty = 'easy';
+        let selectedCharacter = '';
+        let hardModeSign = null;
+
+        async function initApp() {
+            try {
+                const response = await fetch(`${API_URL}/characters`);
+                const data = await response.json();
+                displayCharacters(data.characters);
+            } catch (error) {
+                console.error('Error fetching characters:', error);
+                alert('Could not connect to backend. Make sure Flask server is running on port 5000');
+            }
+        }
+
+        function displayCharacters(characters) {
+            const grid = document.getElementById('characterGrid');
+            grid.innerHTML = '';
+            
+            characters.forEach(char => {
+                const btn = document.createElement('button');
+                btn.className = 'character-btn';
+                btn.textContent = char.replace('-', '\n').toUpperCase();
+                btn.onclick = () => loadCharacter(char);
+                grid.appendChild(btn);
+            });
+        }
+
+        async function loadCharacter(character) {
+            selectedCharacter = character;
+            try {
+                const response = await fetch(`${API_URL}/moves/${character}`);
+                if (!response.ok) throw new Error('Failed to load moves');
+                
+                const data = await response.json();
+                currentMoves = data.moves;
+                
+                displayResults(character);
+            } catch (error) {
+                alert('Error loading moves: ' + error.message);
+            }
+        }
+
+        function displayResults(character) {
+            document.getElementById('resultsSection').classList.add('active');
+        }
+
+        function startFlashcards() {
+            filteredMoves = [...currentMoves];
+            currentCardIndex = 0;
+            isFlipped = false;
+            hardModeSign = null;
+
+            // Shuffle by default
+            for (let i = filteredMoves.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [filteredMoves[i], filteredMoves[j]] = [filteredMoves[j], filteredMoves[i]];
+            }
+
+            // Show flashcard mode
+            document.getElementById('quizMode').style.display = 'none';
+            document.getElementById('flashcardMode').classList.add('active');
+            
+            updateFlashcard();
+        }
+
+        function changeDifficulty(newDifficulty) {
+            difficulty = newDifficulty;
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-difficulty="${newDifficulty}"]`).classList.add('active');
+            hardModeSign = null;
+            updateFrontOptions();
+        }
+
+        function getSafetyStatus(onBlock) {
+            if (onBlock <= -10) {
+                return { status: 'unsafe', text: 'UNSAFE', class: 'unsafe' };
+            } else {
+                return { status: 'safe', text: 'SAFE', class: 'safe' };
+            }
+        }
+
+        function updateFlashcard() {
+            if (filteredMoves.length === 0) return;
+
+            const move = filteredMoves[currentCardIndex];
+            
+            // Update counter
+            document.getElementById('currentCard').textContent = currentCardIndex + 1;
+            document.getElementById('totalCards').textContent = filteredMoves.length;
+
+            // Update front
+            document.getElementById('moveNotation').textContent = move.move;
+
+            // Update video
+            document.getElementById('videoSource').src = move.videoUrl;
+            document.getElementById('moveVideo').load();
+
+            // Update back
+            const onBlock = move.onBlock;
+            const onHit = move.onHit;
+            
+            const onBlockEl = document.getElementById('onBlockValue');
+            onBlockEl.textContent = (onBlock >= 0 ? '+' : '') + onBlock;
+            onBlockEl.className = 'frame-value ' + (onBlock >= 0 ? 'positive' : 'negative');
+
+            const onHitEl = document.getElementById('onHitValue');
+            onHitEl.textContent = (onHit >= 0 ? '+' : '') + onHit;
+            onHitEl.className = 'frame-value ' + (onHit >= 0 ? 'positive' : 'negative');
+
+            // Update safety indicator
+            const safety = getSafetyStatus(onBlock);
+            const safetyIndicator = document.getElementById('safetyIndicator');
+            safetyIndicator.className = `safety-indicator ${safety.class}`;
+            document.getElementById('safetyText').textContent = safety.text;
+
+            document.getElementById('moveName').textContent = move.name;
+
+            // Update buttons
+            document.getElementById('prevBtn').disabled = currentCardIndex === 0;
+            document.getElementById('nextBtn').disabled = currentCardIndex === filteredMoves.length - 1;
+
+            // Reset flip and update options
+            flipToFront();
+            updateFrontOptions();
+        }
+
+        function updateFrontOptions() {
+            const optionsContainer = document.getElementById('answerOptions');
+            const feedback = document.getElementById('answerFeedback');
+            feedback.textContent = '';
+            feedback.className = 'answer-feedback';
+
+            if (filteredMoves.length === 0) {
+                optionsContainer.innerHTML = '';
+                return;
+            }
+
+            const move = filteredMoves[currentCardIndex];
+            const onBlock = move.onBlock;
+
+            if (difficulty === 'easy') {
+                const correctIsUnsafe = onBlock <= -10;
+                const options = ['Safe on block', 'Unsafe on block'];
+                renderOptions(options, (choice) => {
+                    const isCorrect = (choice === 'Unsafe on block') === correctIsUnsafe;
+                    showAnswerFeedback(isCorrect);
+                });
+            } else if (difficulty === 'medium') {
+                const options = ['Safe', '-10 to -12', '-13 to -14', '-15 or higher'];
+                let correct;
+                if (onBlock >= -9) correct = 'Safe';
+                else if (onBlock >= -12) correct = '-10 to -12';
+                else if (onBlock >= -14) correct = '-13 to -14';
+                else correct = '-15 or higher';
+
+                renderOptions(options, (choice) => {
+                    const isCorrect = choice === correct;
+                    showAnswerFeedback(isCorrect);
+                });
+            } else if (difficulty === 'hard') {
+                renderHardModeInput(onBlock);
+            }
+        }
+
+        function renderOptions(labels, onSelect) {
+            const optionsContainer = document.getElementById('answerOptions');
+            optionsContainer.innerHTML = '';
+            labels.forEach(label => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-option';
+                btn.textContent = label;
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.quiz-option').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    onSelect(label);
+                };
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function renderHardModeInput(onBlock) {
+            const optionsContainer = document.getElementById('answerOptions');
+            optionsContainer.innerHTML = '';
+
+            const hardModeDiv = document.createElement('div');
+            hardModeDiv.className = 'hard-mode-input';
+
+            const plusBtn = document.createElement('button');
+            plusBtn.className = 'sign-btn';
+            plusBtn.textContent = '+';
+            plusBtn.onclick = (e) => {
+                e.stopPropagation();
+                hardModeSign = '+';
+                document.querySelectorAll('.sign-btn').forEach(b => b.classList.remove('selected'));
+                plusBtn.classList.add('selected');
+            };
+
+            const minusBtn = document.createElement('button');
+            minusBtn.className = 'sign-btn';
+            minusBtn.textContent = '-';
+            minusBtn.onclick = (e) => {
+                e.stopPropagation();
+                hardModeSign = '-';
+                document.querySelectorAll('.sign-btn').forEach(b => b.classList.remove('selected'));
+                minusBtn.classList.add('selected');
+            };
+
+            const numberInput = document.createElement('input');
+            numberInput.type = 'text';
+            numberInput.className = 'number-input';
+            numberInput.placeholder = '0';
+            numberInput.onclick = (e) => e.stopPropagation();
+            numberInput.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    submitHardModeAnswer(numberInput, onBlock);
+                }
+                e.stopPropagation();
+            };
+
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'submit-btn';
+            submitBtn.textContent = 'Submit';
+            submitBtn.onclick = (e) => {
+                e.stopPropagation();
+                submitHardModeAnswer(numberInput, onBlock);
+            };
+
+            hardModeDiv.appendChild(plusBtn);
+            hardModeDiv.appendChild(minusBtn);
+            hardModeDiv.appendChild(numberInput);
+            hardModeDiv.appendChild(submitBtn);
+
+            optionsContainer.appendChild(hardModeDiv);
+            numberInput.focus();
+        }
+
+        function submitHardModeAnswer(input, correctOnBlock) {
+            if (hardModeSign === null || input.value === '') {
+                alert('Please select + or - and enter a number');
+                return;
+            }
+
+            const numValue = parseInt(input.value, 10);
+            const userAnswer = hardModeSign === '+' ? numValue : -numValue;
+            const isCorrect = userAnswer === correctOnBlock;
+
+            showAnswerFeedback(isCorrect);
+        }
+
+        function showAnswerFeedback(isCorrect) {
+            const feedback = document.getElementById('answerFeedback');
+            feedback.textContent = isCorrect ? '✓ Correct!' : '✗ Incorrect – click to reveal answer';
+            feedback.className = 'answer-feedback ' + (isCorrect ? 'correct' : 'incorrect');
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            const front = document.getElementById('cardFront');
+            const back = document.getElementById('cardBack');
+
+            if (isFlipped) {
+                front.classList.add('hidden');
+                back.classList.remove('hidden');
+            } else {
+                front.classList.remove('hidden');
+                back.classList.add('hidden');
+            }
+        }
+
+        function flipToFront() {
+            isFlipped = false;
+            document.getElementById('cardFront').classList.remove('hidden');
+            document.getElementById('cardBack').classList.add('hidden');
+        }
+
+        function nextCard() {
+            if (currentCardIndex < filteredMoves.length - 1) {
+                currentCardIndex++;
+                hardModeSign = null;
+                updateFlashcard();
+            }
+        }
+
+        function previousCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                hardModeSign = null;
+                updateFlashcard();
+            }
+        }
+
+        function shuffleCards() {
+            for (let i = filteredMoves.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [filteredMoves[i], filteredMoves[j]] = [filteredMoves[j], filteredMoves[i]];
+            }
+            currentCardIndex = 0;
+            hardModeSign = null;
+            updateFlashcard();
+        }
+
+        function backToResults() {
+            document.getElementById('flashcardMode').classList.remove('active');
+            document.getElementById('quizMode').style.display = 'block';
+            document.getElementById('resultsSection').classList.remove('active');
+        }
+
+        window.addEventListener('load', initApp);
+
+        // Keyboard shortcuts for flashcards
+        document.addEventListener('keydown', (e) => {
+            if (!document.getElementById('flashcardMode').classList.contains('active')) return;
+
+            if (e.key === ' ') {
+                e.preventDefault();
+                flipCard();
+            } else if (e.key === 'ArrowRight') {
+                nextCard();
+            } else if (e.key === 'ArrowLeft') {
+                previousCard();
+            }
+        });
+    </script>
+</body>
+</html>
