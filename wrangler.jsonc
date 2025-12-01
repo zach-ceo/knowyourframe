@@ -1,9 +1,0 @@
-{
-  "name": "knowyourframe",
-  "type": "javascript",
-  "main": "index.html",
-  "assets": {
-    "directory": "."
-  }
-}
-
