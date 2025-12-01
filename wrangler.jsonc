@@ -1,0 +1,8 @@
+{
+  "name": "tekken-frame-quiz",
+  "type": "javascript",
+  "main": "index.html",
+  "assets": {
+    "directory": "."
+  }
+}
