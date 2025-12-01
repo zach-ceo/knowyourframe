@@ -1,8 +1,9 @@
 {
-  "name": "tekken-frame-quiz",
+  "name": "knowyourframe",
   "type": "javascript",
   "main": "index.html",
   "assets": {
     "directory": "."
   }
 }
+
