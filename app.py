@@ -272,23 +272,34 @@ def get_characters():
 @app.route('/api/moves/haracter>', methods=['GET'])
 def get_moves_for_character(character):
     """Get moves for a specific character from cache"""
-    character_display = character.replace('-', ' ').title()
-    
-    print(f"DEBUG: Looking for '{character_display}'")
-    print(f"DEBUG: Available characters: {set(m['character'] for m in cache_data['moves'])}")
-    
-    character_moves = [m for m in cache_data['moves'] if m['character'] == character_display]
-    
-    print(f"DEBUG: Found {len(character_moves)} moves")
-    
-    if not character_moves:
-        return jsonify({'error': 'Character not found or no moves cached'}), 404
-    
-    return jsonify({
-        'character': character_display,
-        'moves': character_moves,
-        'total': len(character_moves)
-    })
+    try:
+        print(f"\n{'='*60}")
+        print(f"REQUEST RECEIVED for character: {character}")
+        print(f"Raw character param: '{character}'")
+        
+        character_display = character.replace('-', ' ').title()
+        print(f"Converted to: '{character_display}'")
+        
+        available_chars = set(m['character'] for m in cache_data['moves'])
+        print(f"Available in cache: {available_chars}")
+        
+        character_moves = [m for m in cache_data['moves'] if m['character'] == character_display]
+        print(f"Found {len(character_moves)} moves")
+        print(f"{'='*60}\n")
+        
+        if not character_moves:
+            return jsonify({'error': 'Character not found or no moves cached'}), 404
+        
+        return jsonify({
+            'character': character_display,
+            'moves': character_moves,
+            'total': len(character_moves)
+        })
+    except Exception as e:
+        print(f"ERROR: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/all-moves', methods=['GET'])
