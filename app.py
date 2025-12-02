@@ -182,7 +182,7 @@ def extract_moves_from_page(driver, character):
 def scrape_character_all_pages(driver, character):
     """Scrape all pages for a character"""
     all_moves = []
-    seen_moves = set()  # Track unique moves by (notation, onBlock, onHit)
+    seen_moves = set()
     page = 1
     consecutive_no_new_moves = 0
     last_page_count = 0
@@ -203,7 +203,6 @@ def scrape_character_all_pages(driver, character):
             if not moves:
                 break
             
-            # Only add moves we haven't seen for this character
             new_moves_this_page = 0
             for move in moves:
                 move_key = (move['move'], move['onBlock'], move['onHit'])
@@ -212,7 +211,6 @@ def scrape_character_all_pages(driver, character):
                     all_moves.append(move)
                     new_moves_this_page += 1
             
-            # If this page has same count as last page AND no new moves, we're looping
             if new_moves_this_page == 0 and len(moves) == last_page_count:
                 consecutive_no_new_moves += 1
                 if consecutive_no_new_moves >= 2:
@@ -276,7 +274,12 @@ def get_moves_for_character(character):
     """Get moves for a specific character from cache"""
     character_display = character.replace('-', ' ').title()
     
+    print(f"DEBUG: Looking for '{character_display}'")
+    print(f"DEBUG: Available characters: {set(m['character'] for m in cache_data['moves'])}")
+    
     character_moves = [m for m in cache_data['moves'] if m['character'] == character_display]
+    
+    print(f"DEBUG: Found {len(character_moves)} moves")
     
     if not character_moves:
         return jsonify({'error': 'Character not found or no moves cached'}), 404
@@ -339,7 +342,6 @@ if __name__ == '__main__':
     print("🥊 Tekken 8 Frame Data Quiz - Backend")
     print("=" * 60)
     
-    # Try to load cached data on startup
     if load_cache() and len(cache_data['moves']) > 0:
         print(f"✓ Ready with {len(cache_data['moves'])} cached moves\n")
     else:
@@ -355,4 +357,6 @@ if __name__ == '__main__':
     print("  POST /api/rescrape           - Trigger full rescrape")
     print("\nRunning on http://0.0.0.0:5000\n")
     
-    app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
+
