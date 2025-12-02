@@ -1124,12 +1124,12 @@
     const videoContainer = document.getElementById('videoContainer');
 
     if (isFlipped) {
-        front.classList.add('hidden');
-        back.classList.remove('hidden');
+        front.classList.add('none');
+        back.classList.remove('flex');
         videoContainer.style.display = 'none';
     } else {
-        front.classList.remove('hidden');
-        back.classList.add('hidden');
+        front.classList.remove('flex');
+        back.classList.add('none');
         videoContainer.style.display = 'block';
             }
         }
