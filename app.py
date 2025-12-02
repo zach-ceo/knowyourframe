@@ -269,7 +269,7 @@ def get_characters():
     return jsonify({'characters': CHARACTERS})
 
 
-@app.route('/api/moves/character>', methods=['GET'])
+@app.route('/api/moves/<character>', methods=['GET'])
 def get_moves_for_character(character):
     """Get moves for a specific character from cache"""
     try:
