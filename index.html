@@ -36,7 +36,7 @@
         }
 
         .container {
-            max-width: 1201px;
+            max-width: 1200px;
             margin: 0 auto;
             position: relative;
             z-index: 1;
@@ -755,7 +755,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>Tekken 8 Frame Data Quiz</h1>
+            <h1 onclick="backToHome()" style="cursor: pointer;">TEKKEN 8 FRAME DATA</h1>
         </header>
 
         <!-- QUIZ SECTION -->
@@ -805,7 +805,7 @@
                     <div class="flashcard" id="flashcard" onclick="flipCard()">
                         <div class="flashcard-side card-front" id="cardFront">
                             <div class="video-container" id="videoContainer">
-                                <video id="moveVideo" width="100%" controls controlsList="nodownload">
+                                <video id="moveVideo" width="100%" controls controlsList="nodownload" autoplay muted>
                                     <source id="videoSource" src="" type="video/mp4">
                                     Your browser does not support the video tag.
                                 </video>
@@ -817,7 +817,7 @@
                             <div id="answerOptions" class="answer-options"></div>
                             <div id="answerFeedback" class="answer-feedback"></div>
                         </div>
-                        <div class="flashcard-side card-back hidden" id="cardBack">
+                        <div class="flashcard-side card-back" id="cardBack" style="display:none;">
                             <div class="frame-data">
                                 <div class="frame-box">
                                     <div class="frame-label">On Block</div>
@@ -901,7 +901,7 @@
                 const data = await response.json();
                 currentMoves = data.moves;
                 
-                displayResults(character);
+                startFlashcards();
             } catch (error) {
                 alert('Error loading moves: ' + error.message);
             }
@@ -917,13 +917,11 @@
             isFlipped = false;
             hardModeSign = null;
 
-            // Shuffle by default
             for (let i = filteredMoves.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [filteredMoves[i], filteredMoves[j]] = [filteredMoves[j], filteredMoves[i]];
             }
 
-            // Show flashcard mode
             document.getElementById('quizMode').style.display = 'none';
             document.getElementById('flashcardMode').classList.add('active');
             
@@ -953,18 +951,17 @@
 
             const move = filteredMoves[currentCardIndex];
             
-            // Update counter
             document.getElementById('currentCard').textContent = currentCardIndex + 1;
             document.getElementById('totalCards').textContent = filteredMoves.length;
 
-            // Update front
             document.getElementById('moveNotation').textContent = move.move;
 
-            // Update video
             document.getElementById('videoSource').src = move.videoUrl;
-            document.getElementById('moveVideo').load();
+            const video = document.getElementById('moveVideo');
+            video.load();
+            video.muted = true;
+            video.play().catch(() => {});
 
-            // Update back
             const onBlock = move.onBlock;
             const onHit = move.onHit;
             
@@ -976,7 +973,6 @@
             onHitEl.textContent = (onHit >= 0 ? '+' : '') + onHit;
             onHitEl.className = 'frame-value ' + (onHit >= 0 ? 'positive' : 'negative');
 
-            // Update safety indicator
             const safety = getSafetyStatus(onBlock);
             const safetyIndicator = document.getElementById('safetyIndicator');
             safetyIndicator.className = `safety-indicator ${safety.class}`;
@@ -984,11 +980,9 @@
 
             document.getElementById('moveName').textContent = move.name;
 
-            // Update buttons
             document.getElementById('prevBtn').disabled = currentCardIndex === 0;
             document.getElementById('nextBtn').disabled = currentCardIndex === filteredMoves.length - 1;
 
-            // Reset flip and update options
             flipToFront();
             updateFrontOptions();
         }
@@ -1175,9 +1169,20 @@
             document.getElementById('resultsSection').classList.remove('active');
         }
 
+        function backToHome() {
+            // Full reset: go back to character select
+            document.getElementById('quizMode').style.display = 'block';
+            document.getElementById('flashcardMode').classList.remove('active');
+            document.getElementById('resultsSection').classList.remove('active');
+            currentMoves = [];
+            filteredMoves = [];
+            currentCardIndex = 0;
+            isFlipped = false;
+            hardModeSign = null;
+        }
+
         window.addEventListener('load', initApp);
 
-        // Keyboard shortcuts for flashcards
         document.addEventListener('keydown', (e) => {
             if (!document.getElementById('flashcardMode').classList.contains('active')) return;
 
