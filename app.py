@@ -269,7 +269,7 @@ def get_characters():
     return jsonify({'characters': CHARACTERS})
 
 
-@app.route('/api/moves/haracter>', methods=['GET'])
+@app.route('/api/moves/character>', methods=['GET'])
 def get_moves_for_character(character):
     """Get moves for a specific character from cache"""
     try:
@@ -362,7 +362,7 @@ if __name__ == '__main__':
     
     print("Endpoints:")
     print("  GET  /api/characters         - List all characters")
-    print("  GET  /api/moves/haracter>  - Get moves for character")
+    print("  GET  /api/moves/character>  - Get moves for character")
     print("  GET  /api/all-moves          - Get all cached moves")
     print("  GET  /api/cache-status       - Get cache status")
     print("  POST /api/rescrape           - Trigger full rescrape")
