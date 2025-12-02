@@ -1117,22 +1117,25 @@
             feedback.className = 'answer-feedback ' + (isCorrect ? 'correct' : 'incorrect');
         }
 
-        function flipCard() {
+       function flipCard() {
     isFlipped = !isFlipped;
     const front = document.getElementById('cardFront');
     const back = document.getElementById('cardBack');
     const videoContainer = document.getElementById('videoContainer');
 
     if (isFlipped) {
-        front.classList.add('none');
-        back.classList.remove('flex');
+        front.classList.add('hidden');
+        back.classList.remove('hidden');
+        back.style.display = 'flex';  // Show the back
         videoContainer.style.display = 'none';
     } else {
-        front.classList.remove('flex');
-        back.classList.add('none');
+        front.classList.remove('hidden');
+        back.classList.add('hidden');
+        back.style.display = 'none';  // Hide the back
         videoContainer.style.display = 'block';
-            }
-        }
+    }
+}
+
 
         function flipToFront() {
             isFlipped = false;
