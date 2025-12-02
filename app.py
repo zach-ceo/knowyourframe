@@ -50,7 +50,13 @@ def load_cache():
     if os.path.exists(CACHE_FILE):
         try:
             with open(CACHE_FILE, 'r') as f:
-                cache_data['moves'] = json.load(f)
+                data = json.load(f)
+                if isinstance(data, list):
+                    cache_data['moves'] = data
+                elif isinstance(data, dict) and 'moves' in data:
+                    cache_data['moves'] = data['moves']
+                else:
+                    cache_data['moves'] = []
             
             if os.path.exists(CACHE_METADATA):
                 with open(CACHE_METADATA, 'r') as f:
@@ -265,7 +271,7 @@ def get_characters():
     return jsonify({'characters': CHARACTERS})
 
 
-@app.route('/api/moves/<character>', methods=['GET'])
+@app.route('/api/moves/haracter>', methods=['GET'])
 def get_moves_for_character(character):
     """Get moves for a specific character from cache"""
     character_display = character.replace('-', ' ').title()
@@ -333,20 +339,20 @@ if __name__ == '__main__':
     print("🥊 Tekken 8 Frame Data Quiz - Backend")
     print("=" * 60)
     
-    # Try to load cached data
-    if not load_cache():
-        print("\n⚠️  No cache found. Starting initial scrape...")
+    # Try to load cached data on startup
+    if load_cache() and len(cache_data['moves']) > 0:
+        print(f"✓ Ready with {len(cache_data['moves'])} cached moves\n")
+    else:
+        print("\n⚠️  No cache found or cache is empty. Starting initial scrape...")
         print("This will take several minutes on first run.\n")
         scrape_all_characters_background()
-    else:
-        print(f"✓ Ready with {len(cache_data['moves'])} cached moves\n")
     
     print("Endpoints:")
     print("  GET  /api/characters         - List all characters")
-    print("  GET  /api/moves/<character>  - Get moves for character")
+    print("  GET  /api/moves/haracter>  - Get moves for character")
     print("  GET  /api/all-moves          - Get all cached moves")
     print("  GET  /api/cache-status       - Get cache status")
     print("  POST /api/rescrape           - Trigger full rescrape")
-    print("\nRunning on http://localhost:5000\n")
+    print("\nRunning on http://0.0.0.0:5000\n")
     
-    app.run(debug=True, port=5000)
+    app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
