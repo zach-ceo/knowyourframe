@@ -1118,16 +1118,19 @@
         }
 
         function flipCard() {
-            isFlipped = !isFlipped;
-            const front = document.getElementById('cardFront');
-            const back = document.getElementById('cardBack');
+    isFlipped = !isFlipped;
+    const front = document.getElementById('cardFront');
+    const back = document.getElementById('cardBack');
+    const videoContainer = document.getElementById('videoContainer');
 
-            if (isFlipped) {
-                front.classList.add('hidden');
-                back.classList.remove('hidden');
-            } else {
-                front.classList.remove('hidden');
-                back.classList.add('hidden');
+    if (isFlipped) {
+        front.classList.add('hidden');
+        back.classList.remove('hidden');
+        videoContainer.style.display = 'none';
+    } else {
+        front.classList.remove('hidden');
+        back.classList.add('hidden');
+        videoContainer.style.display = 'block';
             }
         }
 
