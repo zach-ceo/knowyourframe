@@ -805,7 +805,7 @@
                     <div class="flashcard" id="flashcard" onclick="flipCard()">
                         <div class="flashcard-side card-front" id="cardFront">
                             <div class="video-container" id="videoContainer">
-                                <video id="moveVideo" width="100%" controls controlsList="nodownload" autoplay muted>
+                                <video id="moveVideo" width="100%" controlsList="nodownload" autoplay muted loop>
                                     <source id="videoSource" src="" type="video/mp4">
                                     Your browser does not support the video tag.
                                 </video>
@@ -1170,7 +1170,6 @@
         }
 
         function backToHome() {
-            // Full reset: go back to character select
             document.getElementById('quizMode').style.display = 'block';
             document.getElementById('flashcardMode').classList.remove('active');
             document.getElementById('resultsSection').classList.remove('active');
