@@ -1008,19 +1008,27 @@
                     const isCorrect = (choice === 'Unsafe on block') === correctIsUnsafe;
                     showAnswerFeedback(isCorrect);
                 });
-            } else if (difficulty === 'medium') {
-                const options = ['Safe', '-10 to -12', '-13 to -14', '-15 or higher'];
-                let correct;
-                if (onBlock >= -9) correct = 'Safe';
-                else if (onBlock >= -12) correct = '-10 to -12';
-                else if (onBlock >= -14) correct = '-13 to -14';
-                else correct = '-15 or higher';
+            } 
+            else if (difficulty === 'medium') {
+    const options = ['Plus on block', '-10 to -14', 'Safe', '-15 or higher'];
+    let correct;
+    if (onBlock >= 1) {
+        correct = 'Plus on block';
+    } else if (onBlock >= -9) {
+        correct = 'Safe';
+    } else if (onBlock >= -14) {
+        correct = '-10 to -14';
+    } else {
+        correct = '-15 or higher';
+    }
 
-                renderOptions(options, (choice) => {
-                    const isCorrect = choice === correct;
-                    showAnswerFeedback(isCorrect);
-                });
-            } else if (difficulty === 'hard') {
+    renderOptions(options, (choice) => {
+        const isCorrect = choice === correct;
+        showAnswerFeedback(isCorrect);
+    });
+}
+
+            else if (difficulty === 'hard') {
                 renderHardModeInput(onBlock);
             }
         }
