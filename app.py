@@ -115,59 +115,58 @@ def create_driver():
 def extract_moves_from_page(driver, character):
     """Extract moves from current page"""
     moves = []
-    
     try:
         time.sleep(0.5)
         move_divs = driver.find_elements(By.XPATH, "//div[contains(@class, 'move')]")
-        
+
         for move_div in move_divs:
             try:
                 text = move_div.text.strip()
                 if not text:
                     continue
-                
+
                 lines = text.split('\n')
                 if len(lines) < 2:
                     continue
-                
+
                 move_notation = lines[0].strip()
-                
                 on_block = 0
                 on_hit = 0
                 move_name = move_notation
+
+                # ---- NEW NUMERIC PARSING LOGIC ----
                 frame_data = []
+                for line in lines:
+                    line = line.strip()
+                    if re.match(r'^[+-]\d+$', line):
+                        frame_data.append(int(line))
 
-for line in lines:
-    line = line.strip()
-    if re.match(r'^[+-]\d+$', line):
-        frame_data.append(int(line))
+                # If exactly 2 numbers, assume [on block, on hit]
+                if len(frame_data) == 2:
+                    on_block = frame_data[0]
+                    on_hit = frame_data[1]
+                # If 3 or more, assume [..., on block, on hit, (optional) on counter]
+                elif len(frame_data) >= 3:
+                    on_block = frame_data[-3]
+                    on_hit = frame_data[-2]
+                # -----------------------------------
 
-# If there are exactly 2 numbers, assume [on block, on hit]
-if len(frame_data) == 2:
-    on_block = frame_data[0]
-    on_hit = frame_data[1]
-# If there are 3 or more, assume [startup, on block, on hit, (optional) on counter]
-elif len(frame_data) >= 3:
-    on_block = frame_data[-3]
-    on_hit = frame_data[-2]
-# Otherwise leave defaults (0, 0)
-
-                
                 for line in lines[1:]:
+                    line = line.strip()
                     if line and not re.match(r'^[+-]?\d+', line) and len(line) > 1:
                         move_name = line
                         break
-                
+
                 video_url = ""
                 try:
                     video_elem = move_div.find_element(By.TAG_NAME, "video")
                     video_url = video_elem.get_attribute("src")
                 except:
                     pass
-                
+
                 if not video_url:
                     video_url = f"https://okizeme.b-cdn.net/{character}/{move_notation.replace('/', '').replace('+', '%2B')}.mp4"
-                
+
                 move = {
                     "character": character.replace('-', ' ').title(),
                     "move": move_notation,
@@ -176,14 +175,16 @@ elif len(frame_data) >= 3:
                     "onHit": on_hit,
                     "videoUrl": video_url
                 }
-                
                 moves.append(move)
+
             except Exception as e:
                 continue
-        
+
         return moves
+
     except Exception as e:
         return moves
+
 
 
 def scrape_character_all_pages(driver, character):
