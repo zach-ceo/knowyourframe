@@ -136,15 +136,22 @@ def extract_moves_from_page(driver, character):
                 on_hit = 0
                 move_name = move_notation
                 frame_data = []
-                
-                for line in lines:
-                    line = line.strip()
-                    if re.match(r'^[+-]\d+$', line):
-                        frame_data.append(int(line))
-                
-                if len(frame_data) >= 2:
-                    on_block = frame_data[-2]
-                    on_hit = frame_data[-1]
+
+for line in lines:
+    line = line.strip()
+    if re.match(r'^[+-]\d+$', line):
+        frame_data.append(int(line))
+
+# If there are exactly 2 numbers, assume [on block, on hit]
+if len(frame_data) == 2:
+    on_block = frame_data[0]
+    on_hit = frame_data[1]
+# If there are 3 or more, assume [startup, on block, on hit, (optional) on counter]
+elif len(frame_data) >= 3:
+    on_block = frame_data[-3]
+    on_hit = frame_data[-2]
+# Otherwise leave defaults (0, 0)
+
                 
                 for line in lines[1:]:
                     if line and not re.match(r'^[+-]?\d+', line) and len(line) > 1:
