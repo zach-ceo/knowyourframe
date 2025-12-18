@@ -94,22 +94,30 @@ def save_cache():
 
 
 def create_driver():
-    """Create a Chrome WebDriver"""
+    """Create a Chrome WebDriver (manual driver path)"""
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-    
+    chrome_options.add_argument(
+        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    )
+
     try:
-        service = Service(ChromeDriverManager().install())
+        driver_path = r"C:\Users\Zach\Tools\chromedriver\chromedriver-win64\chromedriver.exe"  # <-- update if you used a different folder
+        service = Service(executable_path=driver_path)
         driver = webdriver.Chrome(service=service, options=chrome_options)
         return driver
     except Exception as e:
         print(f"✗ Error creating WebDriver: {e}")
         return None
+
+    
+
+
+    
 
 
 def extract_moves_from_page(driver, character):
@@ -192,48 +200,38 @@ def scrape_character_all_pages(driver, character):
     all_moves = []
     seen_moves = set()
     page = 1
-    consecutive_no_new_moves = 0
-    last_page_count = 0
-    
+
     while page <= 100:
         try:
             url = f"https://okizeme.gg/database/{character}?page={page}"
             driver.get(url)
             time.sleep(0.6)
-            
+
             move_divs = driver.find_elements(By.XPATH, "//div[contains(@class, 'move')]")
-            
             if not move_divs:
                 break
-            
+
             moves = extract_moves_from_page(driver, character)
-            
             if not moves:
                 break
-            
-            new_moves_this_page = 0
+
             for move in moves:
-                move_key = (move['move'], move['onBlock'], move['onHit'])
+                # Optional de‑dupe (see next section)
+                move_key = (move["character"], move["move"], move["onBlock"], move["onHit"])
                 if move_key not in seen_moves:
                     seen_moves.add(move_key)
                     all_moves.append(move)
-                    new_moves_this_page += 1
-            
-            if new_moves_this_page == 0 and len(moves) == last_page_count:
-                consecutive_no_new_moves += 1
-                if consecutive_no_new_moves >= 2:
-                    break
-            else:
-                consecutive_no_new_moves = 0
-            
-            last_page_count = len(moves)
+
             page += 1
             time.sleep(0.2)
+
         except Exception as e:
-            print(f"  Error on page {page}: {e}")
+            print(f" Error on page {page}: {e}")
             break
-    
+
     return all_moves
+
+
 
 
 def scrape_all_characters_background():
