@@ -121,7 +121,7 @@ def create_driver():
 
 
 def extract_moves_from_page(driver, character):
-    """Extract moves from current page"""
+    """Extract moves from current page using labeled frame rows."""
     moves = []
     try:
         time.sleep(0.5)
@@ -133,64 +133,90 @@ def extract_moves_from_page(driver, character):
                 if not text:
                     continue
 
-                lines = text.split('\n')
+                lines = [ln.strip() for ln in text.split("\n") if ln.strip()]
                 if len(lines) < 2:
                     continue
 
                 move_notation = lines[0].strip()
+                move_name = move_notation
                 on_block = 0
                 on_hit = 0
-                move_name = move_notation
 
-                # ---- NEW NUMERIC PARSING LOGIC ----
-                frame_data = []
-                for line in lines:
-                    line = line.strip()
-                    if re.match(r'^[+-]\d+$', line):
-                        frame_data.append(int(line))
+                # --- NEW: parse by labels, not positions ---
+                for ln in lines[1:]:
+                    lower = ln.lower()
 
-                # If exactly 2 numbers, assume [on block, on hit]
-                if len(frame_data) == 2:
-                    on_block = frame_data[0]
-                    on_hit = frame_data[1]
-                # If 3 or more, assume [..., on block, on hit, (optional) on counter]
-                elif len(frame_data) >= 3:
-                    on_block = frame_data[-3]
-                    on_hit = frame_data[-2]
-                # -----------------------------------
+                    # On block
+                    if "on block" in lower:
+                        # e.g. "On block: +1" or "On block +1"
+                        m = re.search(r"([+-]\d+)", ln)
+                        if m:
+                            on_block = int(m.group(1))
+                            continue
 
-                for line in lines[1:]:
-                    line = line.strip()
-                    if line and not re.match(r'^[+-]?\d+', line) and len(line) > 1:
-                        move_name = line
-                        break
+                    # On hit
+                    if "on hit" in lower:
+                        # e.g. "On hit: +59a" or "On hit +59"
+                        m = re.search(r"([+-]\d+)", ln)
+                        if m:
+                            on_hit = int(m.group(1))
+                            continue
 
+                # --- Fallback: if labels not found, use last two signed numbers ---
+                if "on block" not in text.lower() or "on hit" not in text.lower():
+                    frame_vals = []
+                    for ln in lines:
+                        m = re.match(r"([+-]\d+)", ln.strip())
+                        if m:
+                            frame_vals.append(int(m.group(1)))
+                    if len(frame_vals) >= 2:
+                        on_block = frame_vals[-2]
+                        on_hit = frame_vals[-1]
+                    elif len(frame_vals) == 1:
+                        on_hit = frame_vals[0]
+
+                # --- Extract a nicer move name (first non-frame line after notation) ---
+                for ln in lines[1:]:
+                    # Skip obvious frame / label lines
+                    if re.search(r"on block|on hit|on whiff|startup|recovery", ln, re.IGNORECASE):
+                        continue
+                    if re.match(r"^[iu]\d+", ln):  # i15, i17 etc
+                        continue
+                    if re.match(r"^[+-]\d+", ln):  # pure numbers
+                        continue
+                    # Use this as the move name
+                    move_name = ln
+                    break
+
+                # Video URL
                 video_url = ""
                 try:
                     video_elem = move_div.find_element(By.TAG_NAME, "video")
                     video_url = video_elem.get_attribute("src")
-                except:
+                except Exception:
                     pass
 
                 if not video_url:
-                    video_url = f"https://okizeme.b-cdn.net/{character}/{move_notation.replace('/', '').replace('+', '%2B')}.mp4"
+                    video_url = (
+                        f"https://okizeme.b-cdn.net/{character}/"
+                        f"{move_notation.replace('/', '').replace('+', '%2B')}.mp4"
+                    )
 
                 move = {
-                    "character": character.replace('-', ' ').title(),
+                    "character": character.replace("-", " ").title(),
                     "move": move_notation,
                     "name": move_name[:50],
                     "onBlock": on_block,
                     "onHit": on_hit,
-                    "videoUrl": video_url
+                    "videoUrl": video_url,
                 }
                 moves.append(move)
 
-            except Exception as e:
+            except Exception:
                 continue
 
         return moves
-
-    except Exception as e:
+    except Exception:
         return moves
 
 
@@ -216,11 +242,17 @@ def scrape_character_all_pages(driver, character):
                 break
 
             for move in moves:
-                # Optional de‑dupe (see next section)
-                move_key = (move["character"], move["move"], move["onBlock"], move["onHit"])
+                move_key = (
+                    move["character"],
+                    move["move"],
+                    move["name"],      # include name so different cards survive
+                    move["onBlock"],
+                    move["onHit"],
+    )
                 if move_key not in seen_moves:
                     seen_moves.add(move_key)
-                    all_moves.append(move)
+                all_moves.append(move)
+
 
             page += 1
             time.sleep(0.2)
