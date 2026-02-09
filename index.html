@@ -1016,26 +1016,38 @@
                     showAnswerFeedback(isCorrect);
                 });
             } 
-            else if (difficulty === 'medium') {
-    // Multiple choice: exact frame value on block
+           else if (difficulty === 'medium') {
+    // Multiple choice: exact frame value on block, but with wider/random spread
     const correct = onBlock;
-
-    // helper to format like "+4" or "-8"
     const fmt = (n) => (n >= 0 ? `+${n}` : `${n}`);
 
-    // generate 3 distinct distractors near the correct value
     const used = new Set([correct]);
     const choicesVals = [correct];
+
+    // Helper to bias around punish windows but still vary a lot
+    const candidateFromWindow = () => {
+        // random window center: could be same, slightly safer, or more unsafe
+        const centers = [correct, correct - 5, correct + 5];
+        const center = centers[Math.floor(Math.random() * centers.length)];
+        const spread = 7; // +/- 7 frames around chosen center
+        const delta = Math.floor(Math.random() * (2 * spread + 1)) - spread;
+        return center + delta;
+    };
+
     while (choicesVals.length < 4) {
-        const delta = Math.floor(Math.random() * 7) - 3; // -3 to +3
-        const candidate = correct + delta;
+        let candidate = candidateFromWindow();
+
+        // clamp to a reasonable range overall
+        if (candidate > 20) candidate = 20;
+        if (candidate < -25) candidate = -25;
+
         if (!used.has(candidate)) {
             used.add(candidate);
             choicesVals.push(candidate);
         }
     }
 
-    // shuffle choices
+    // Shuffle
     for (let i = choicesVals.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [choicesVals[i], choicesVals[j]] = [choicesVals[j], choicesVals[i]];
@@ -1049,6 +1061,7 @@
         showAnswerFeedback(isCorrect);
     });
 }
+
 
 
             else if (difficulty === 'hard') {
