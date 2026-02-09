@@ -804,19 +804,21 @@
                 <div class="flashcard-container">
                     <div class="flashcard" id="flashcard" onclick="flipCard()">
                         <div class="flashcard-side card-front" id="cardFront">
+                            <div>
+                                <p class="move-hint" id="moveLabel">
+                                    MOVE: <span id="moveNotation">1</span> · <span id="moveTitle">Move name</span>
+                                </p>
+                            </div>
                             <div class="video-container" id="videoContainer">
                                 <video id="moveVideo" width="100%" controlsList="nodownload" autoplay muted loop playsinline>
                                     <source id="videoSource" src="" type="video/mp4">
                                     Your browser does not support the video tag.
                                 </video>
                             </div>
-                            <div>
-                                <p class="move-hint">Is this move safe or unsafe on block?</p>
-                                <div class="move-notation-display" id="moveNotation">1</div>
-                            </div>
                             <div id="answerOptions" class="answer-options"></div>
                             <div id="answerFeedback" class="answer-feedback"></div>
                         </div>
+
                         <div class="flashcard-side card-back" id="cardBack" style="display:none;">
                             <div class="frame-data">
                                 <div class="frame-box">
@@ -955,6 +957,11 @@
             document.getElementById('totalCards').textContent = filteredMoves.length;
 
             document.getElementById('moveNotation').textContent = move.move;
+            
+            const titleEl = document.getElementById('moveTitle');
+            if (titleEl) {
+                titleEl.textContent = move.name || '';
+            }
 
             document.getElementById('videoSource').src = move.videoUrl;
             const video = document.getElementById('moveVideo');
@@ -1010,23 +1017,39 @@
                 });
             } 
             else if (difficulty === 'medium') {
-    const options = ['Plus on block', '-10 to -14', 'Safe', '-15 or higher'];
-    let correct;
-    if (onBlock >= 1) {
-        correct = 'Plus on block';
-    } else if (onBlock >= -9) {
-        correct = 'Safe';
-    } else if (onBlock >= -14) {
-        correct = '-10 to -14';
-    } else {
-        correct = '-15 or higher';
+    // Multiple choice: exact frame value on block
+    const correct = onBlock;
+
+    // helper to format like "+4" or "-8"
+    const fmt = (n) => (n >= 0 ? `+${n}` : `${n}`);
+
+    // generate 3 distinct distractors near the correct value
+    const used = new Set([correct]);
+    const choicesVals = [correct];
+    while (choicesVals.length < 4) {
+        const delta = Math.floor(Math.random() * 7) - 3; // -3 to +3
+        const candidate = correct + delta;
+        if (!used.has(candidate)) {
+            used.add(candidate);
+            choicesVals.push(candidate);
+        }
     }
 
-    renderOptions(options, (choice) => {
-        const isCorrect = choice === correct;
+    // shuffle choices
+    for (let i = choicesVals.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [choicesVals[i], choicesVals[j]] = [choicesVals[j], choicesVals[i]];
+    }
+
+    const labels = choicesVals.map(fmt);
+
+    renderOptions(labels, (choiceLabel) => {
+        const chosenVal = parseInt(choiceLabel, 10);
+        const isCorrect = chosenVal === correct;
         showAnswerFeedback(isCorrect);
     });
 }
+
 
             else if (difficulty === 'hard') {
                 renderHardModeInput(onBlock);

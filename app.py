@@ -28,6 +28,7 @@ CHARACTERS = [
     'hwoarang', 'jack-8', 'jin', 'jun', 'kazuya', 'king', 'kuma', 'lars',
     'law', 'lee', 'leo', 'leroy', 'lidia', 'lili', 'nina', 'panda', 'paul',
     'raven', 'reina', 'shaheen', 'steve', 'victor', 'xiaoyu', 'yoshimitsu', 'zafina'
+    , 'miary-zo'
 ]
 
 CACHE_FILE = 'moves_cache.json'
